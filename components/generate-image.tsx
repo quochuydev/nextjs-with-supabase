@@ -57,7 +57,7 @@ export function GenerateImage() {
           </a>
         </p>
         <p className="text-sm text-black italic">
-          Related to security, we don't store your API key.
+          {`Related to security, we don't store your API key.`}
         </p>
       </div>
 

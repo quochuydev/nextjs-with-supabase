@@ -55,6 +55,8 @@ export async function POST(req: Request) {
       imageUrl: `data:image/png;base64,${base64Image}`,
     });
   } catch (error) {
+    console.log(`debug:error`, error);
+
     return NextResponse.json(
       {
         error: "Failed to generate image.",
