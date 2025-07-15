@@ -56,8 +56,18 @@ export function GenerateImage() {
             https://aistudio.google.com/apikey
           </a>
         </p>
-        <p className="text-sm text-black italic">
-          {`Related to security, we don't store your API key.`}
+        <p className="text-sm text-black italic flex gap-1">
+          <span>
+            {`Related to security, we don't store your API key. look at the code`}
+          </span>
+          <a
+            href="https://github.com/quochuydev/nextjs-with-supabase/blob/main/app/api/generate-image/route.ts"
+            target="_blank"
+            rel="noreferrer"
+            className="font-bold hover:underline text-blue-600"
+          >
+            here
+          </a>
         </p>
       </div>
 
