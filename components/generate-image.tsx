@@ -8,28 +8,29 @@ export function GenerateImage() {
   const [loading, setLoading] = useState(false);
 
   const handleGenerate = async () => {
-    if (!apiKey || !prompt) return;
-    setLoading(true);
-    setImageUrl("");
+    try {
+      if (!apiKey || !prompt) return alert("Missing API key or prompt");
+      setLoading(true);
+      setImageUrl("");
 
-    const res = await fetch("/api/generate-image", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        prompt,
-        apiKey,
-      }),
-    });
+      const res = await fetch("/api/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt, apiKey }),
+      });
 
-    const data = await res.json();
-
-    if (data.imageUrl) {
-      setImageUrl(data.imageUrl);
+      const data = await res.json();
+      if (data.imageUrl) {
+        setImageUrl(data.imageUrl);
+      } else {
+        alert("❌ " + data.error);
+      }
+    } catch (error: any) {
+      console.log(`debug:error-generate`, error);
+      if (error.message) alert(error.message);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
@@ -76,7 +77,13 @@ export function GenerateImage() {
 
       {imageUrl && (
         <div className="pt-4">
-          <img src={imageUrl} alt="Generated" className="rounded-lg border" />
+          <img
+            src={imageUrl}
+            alt="Generated"
+            className="rounded-lg border"
+            width={400}
+            height={400}
+          />
         </div>
       )}
     </div>
