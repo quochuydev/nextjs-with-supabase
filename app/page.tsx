@@ -1,6 +1,7 @@
 import { AuthButton } from "@/components/auth-button";
 import { DeployButton } from "@/components/deploy-button";
 import { EnvVarWarning } from "@/components/env-var-warning";
+import { CoinChart } from "@/components/coin-chart";
 import { GenerateImage } from "@/components/generate-image";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { hasEnvVars } from "@/lib/utils";
@@ -21,6 +22,9 @@ export default function Home() {
             {!hasEnvVars ? <EnvVarWarning /> : <AuthButton />}
           </div>
         </nav>
+
+        <CoinChart />
+
         <div className="flex-1 flex flex-col gap-20 min-w-5xl p-5">
           {/* <h2 className="font-medium text-xl mb-4">Next steps</h2> */}
           <GenerateImage />
@@ -31,12 +35,12 @@ export default function Home() {
           <p>
             Powered by{" "}
             <a
-              href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
+              href="https://github.com/quochuydev"
               target="_blank"
               className="font-bold hover:underline"
               rel="noreferrer"
             >
-              Supabase
+              {"quochuydev"}
             </a>
           </p>
           <ThemeSwitcher />
