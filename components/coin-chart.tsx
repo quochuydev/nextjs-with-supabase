@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import React, { useEffect, useState } from "react";
 import {
   CartesianGrid,
+  Legend,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -61,7 +62,7 @@ export const CoinChart: React.FC = () => {
 
   useEffect(() => {
     fetchBTCData();
-    const interval = setInterval(fetchBTCData, 10000);
+    const interval = setInterval(fetchBTCData, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -75,13 +76,40 @@ export const CoinChart: React.FC = () => {
 
       <ResponsiveContainer width="100%" height={400}>
         <LineChart data={data}>
+          <Legend />
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="time" />
-          <YAxis domain={["auto", "auto"]} />
+          <YAxis
+            domain={["auto", "auto"]}
+            tickCount={15} // ⬅️ More grid lines
+            interval={0} // ⬅️ Show all ticks (optional)
+            tickLine={true} // ⬅️ Optional: show tick lines
+          />
           <Tooltip />
-          <Line type="monotone" dataKey="close" stroke="#0ea5e9" dot={false} />
-          <Line type="monotone" dataKey="ma5" stroke="#ff0000" dot={false} />
-          <Line type="monotone" dataKey="ma20" stroke="#00ff00" dot={false} />
+          <Line
+            type="monotone"
+            dataKey="close"
+            stroke="#0ea5e9"
+            dot={false}
+            name="Close"
+            isAnimationActive={false}
+          />
+          <Line
+            type="monotone"
+            dataKey="ma5"
+            stroke="#ff0000"
+            dot={false}
+            name="MA5"
+            isAnimationActive={false}
+          />
+          <Line
+            type="monotone"
+            dataKey="ma20"
+            stroke="#00ff00"
+            dot={false}
+            name="MA20"
+            isAnimationActive={false}
+          />
         </LineChart>
       </ResponsiveContainer>
     </div>
