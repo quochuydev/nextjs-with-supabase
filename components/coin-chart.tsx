@@ -23,7 +23,13 @@ export const CoinChart: React.FC = () => {
 
   const [mode, setMode] = useState<"none" | "buy" | "sell">("buy");
   const [points, setPoints] = useState<
-    { time: string; price: number; amount: number; type: "buy" | "sell" }[]
+    {
+      time: string;
+      price: number;
+      amount: number;
+      type: "buy" | "sell";
+      timestamp: number;
+    }[]
   >([]);
 
   const [fibIndex, setFibIndex] = useState(0);
@@ -54,7 +60,7 @@ export const CoinChart: React.FC = () => {
 
       //5m x (12 x 12) = 720m = 12h
       const res = await fetch(
-        "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h&limit=240"
+        "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=15m&limit=240"
       );
       const json = await res.json();
 
@@ -73,7 +79,7 @@ export const CoinChart: React.FC = () => {
       //  11: Ignore
       // ]
       const parsed = json.map((item: any) => ({
-        // time: new Date(item[0]).toLocaleTimeString(),
+        timestamp: item[0], // raw ms value
         time: new Date(item[0]).toLocaleString("en-US", {
           month: "short",
           day: "numeric",
@@ -140,7 +146,13 @@ export const CoinChart: React.FC = () => {
       const amount = FIB_SERIES[fibIndex] ?? FIB_SERIES[FIB_SERIES.length - 1];
       setPoints((prev) => [
         ...prev,
-        { time: clickedPoint.time, price, amount, type: "buy" },
+        {
+          time: clickedPoint.time,
+          price,
+          amount,
+          type: "buy",
+          timestamp: clickedPoint.timestamp,
+        },
       ]);
       setFibIndex((prev) => prev + 1);
     }
@@ -151,7 +163,13 @@ export const CoinChart: React.FC = () => {
 
       setPoints((prev) => [
         ...prev,
-        { time: clickedPoint.time, price, amount: 0, type: "sell" },
+        {
+          time: clickedPoint.time,
+          price,
+          amount: 0,
+          type: "sell",
+          timestamp: clickedPoint.timestamp,
+        },
       ]);
 
       const totalProfit = calculateProfit(sellPrice);
@@ -183,6 +201,16 @@ export const CoinChart: React.FC = () => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  const prices = data.map((d) => d.close);
+  const minPrice = Math.floor(Math.min(...prices) / 500) * 500;
+  const maxPrice = Math.ceil(Math.max(...prices) / 500) * 500;
+
+  const ticks = [];
+
+  for (let i = minPrice; i <= maxPrice; i += 500) {
+    ticks.push(i);
+  }
 
   return (
     <div className="p-6 w-full mx-auto space-y-6">
@@ -242,17 +270,19 @@ export const CoinChart: React.FC = () => {
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="time" />
           <YAxis
-            domain={["auto", "auto"]}
+            // domain={["auto", "auto"]}
             tickCount={15}
             interval={0}
             tickLine={true}
+            domain={[minPrice, maxPrice]}
+            ticks={ticks}
           />
           <Tooltip />
           <Line
             type="monotone"
             dataKey="close"
             stroke="black"
-            dot={false}
+            // dot={false}
             name="Close"
             isAnimationActive={false}
           />
@@ -270,20 +300,6 @@ export const CoinChart: React.FC = () => {
             dot={false}
             isAnimationActive={false}
           />
-          {/* <Scatter
-            data={points.filter((p) => p.type === "buy")}
-            name="Buy"
-            fill="green"
-            shape="circle"
-            x="time"
-            y="price"
-          />
-          <Scatter
-            data={points.filter((p) => p.type === "sell")}
-            name="Sell"
-            fill="red"
-            shape="triangle"
-          /> */}
         </LineChart>
       </ResponsiveContainer>
 
