@@ -55,7 +55,7 @@ export const CoinChart: React.FC = () => {
   };
 
   const [interval, setIntervalValue] = useState("1h");
-  const [limit, setLimit] = useState(240);
+  const [limit, setLimit] = useState(120);
   const [refreshInterval, setRefreshInterval] = useState(5000); // default: 5 seconds
   const [symbol, setSymbol] = useState("BTCUSDT");
 
@@ -86,8 +86,8 @@ export const CoinChart: React.FC = () => {
       const parsed = json.map((item: any) => ({
         timestamp: item[0], // raw ms value
         time: new Date(item[0]).toLocaleString("en-US", {
-          month: "short",
-          day: "numeric",
+          month: "2-digit",
+          day: "2-digit",
           hour: "2-digit",
           minute: "2-digit",
           hour12: false,
@@ -231,6 +231,13 @@ export const CoinChart: React.FC = () => {
     ticks.push(p);
   }
 
+  const CustomSelectedDot = ({ cx, cy, payload }: any) => {
+    const matchedPoint = points.find((p) => p.time === payload.time);
+    if (!matchedPoint) return null;
+
+    return <circle cx={cx} cy={cy} r={6} fill="black" />;
+  };
+
   return (
     <div className="p-6 w-full mx-auto space-y-6">
       <h1 className="text-2xl font-bold text-center">BTC/USDT 5m Chart</h1>
@@ -349,14 +356,14 @@ export const CoinChart: React.FC = () => {
             type="monotone"
             dataKey="close"
             stroke="black"
-            // dot={false}
+            dot={false}
             name="Close"
             isAnimationActive={false}
           />
           <Line
             type="monotone"
             dataKey={`ma${ma1Period}`}
-            stroke="yellow"
+            stroke="blue"
             dot={false}
             isAnimationActive={false}
           />
@@ -365,6 +372,13 @@ export const CoinChart: React.FC = () => {
             dataKey={`ma${ma2Period}`}
             stroke="red"
             dot={false}
+            isAnimationActive={false}
+          />
+          <Line
+            type="monotone"
+            dataKey="close"
+            stroke="black"
+            dot={<CustomSelectedDot />}
             isAnimationActive={false}
           />
         </LineChart>
