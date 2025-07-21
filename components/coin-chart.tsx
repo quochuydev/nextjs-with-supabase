@@ -54,13 +54,18 @@ export const CoinChart: React.FC = () => {
     });
   };
 
+  const [interval, setIntervalValue] = useState("1h");
+  const [limit, setLimit] = useState(240);
+  const [refreshInterval, setRefreshInterval] = useState(5000); // default: 5 seconds
+  const [symbol, setSymbol] = useState("BTCUSDT");
+
   const fetchBTCData = useCallback(async () => {
     try {
       setLoading(true);
 
       //5m x (12 x 12) = 720m = 12h
       const res = await fetch(
-        "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=15m&limit=240"
+        `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`
       );
       const json = await res.json();
 
@@ -101,13 +106,13 @@ export const CoinChart: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [ma1Period, ma2Period]);
+  }, [interval, limit, ma1Period, ma2Period, symbol]);
 
   useEffect(() => {
     fetchBTCData();
-    const interval = setInterval(fetchBTCData, 5000);
+    const interval = setInterval(fetchBTCData, refreshInterval);
     return () => clearInterval(interval);
-  }, [fetchBTCData]);
+  }, [fetchBTCData, refreshInterval]);
 
   const calculateProfit = (sellPrice: number) => {
     const unmatchedBuys = [];
@@ -203,18 +208,80 @@ export const CoinChart: React.FC = () => {
   }, []);
 
   const prices = data.map((d) => d.close);
-  const minPrice = Math.floor(Math.min(...prices) / 500) * 500;
-  const maxPrice = Math.ceil(Math.max(...prices) / 500) * 500;
+  const minPrice = Math.min(...prices);
+  const maxPrice = Math.max(...prices);
+  const priceRange = maxPrice - minPrice;
 
+  // Auto-pick a step based on price range
+  let step = 1;
+  if (priceRange > 2000) step = 500;
+  else if (priceRange > 500) step = 100;
+  else if (priceRange > 100) step = 20;
+  else if (priceRange > 50) step = 10;
+  else if (priceRange > 10) step = 5;
+  else step = 1;
+
+  // Round min/max to nearest step
+  const adjustedMin = Math.floor(minPrice / step) * step;
+  const adjustedMax = Math.ceil(maxPrice / step) * step;
+
+  // Generate ticks
   const ticks = [];
-
-  for (let i = minPrice; i <= maxPrice; i += 500) {
-    ticks.push(i);
+  for (let p = adjustedMin; p <= adjustedMax; p += step) {
+    ticks.push(p);
   }
 
   return (
     <div className="p-6 w-full mx-auto space-y-6">
       <h1 className="text-2xl font-bold text-center">BTC/USDT 5m Chart</h1>
+
+      <div className="flex justify-center gap-4">
+        <label className="flex items-center gap-2">
+          Symbol:
+          <select
+            value={symbol}
+            onChange={(e) => setSymbol(e.target.value)}
+            className="border px-2 py-1 rounded"
+          >
+            <option value="BTCUSDT">BTC</option>
+            <option value="ETHUSDT">ETH</option>
+            <option value="SOLUSDT">SOL</option>
+          </select>
+        </label>
+        <label className="flex items-center gap-2">
+          Interval:
+          <input
+            type="text"
+            value={interval}
+            onChange={(e) => setIntervalValue(e.target.value)}
+            className="border px-2 py-1 rounded w-20"
+            placeholder="e.g. 15m"
+          />
+        </label>
+        <label className="flex items-center gap-2">
+          Limit:
+          <input
+            type="number"
+            value={limit}
+            onChange={(e) => setLimit(parseInt(e.target.value))}
+            className="border px-2 py-1 rounded w-20"
+            min={1}
+            max={1000}
+          />
+        </label>
+        <label className="flex items-center gap-2">
+          Refresh (ms):
+          <input
+            type="number"
+            value={refreshInterval}
+            onChange={(e) => setRefreshInterval(parseInt(e.target.value))}
+            className="border px-2 py-1 rounded w-24"
+            min={1000}
+            step={1000}
+          />
+        </label>
+      </div>
+
       <div className="flex justify-center gap-4">
         <label className="flex items-center gap-2">
           MA1:
