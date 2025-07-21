@@ -66,3 +66,9 @@
     @apply bg-background text-foreground;
   }
 }
+
+.recharts-default-tooltip {
+  font-size: 12px !important;
+  padding: 4px 8px !important;
+  line-height: 1.2 !important;
+}
