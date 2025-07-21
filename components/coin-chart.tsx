@@ -54,7 +54,7 @@ export const CoinChart: React.FC = () => {
 
       //5m x (12 x 12) = 720m = 12h
       const res = await fetch(
-        "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=15m&limit=144"
+        "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h&limit=240"
       );
       const json = await res.json();
 
@@ -73,7 +73,15 @@ export const CoinChart: React.FC = () => {
       //  11: Ignore
       // ]
       const parsed = json.map((item: any) => ({
-        time: new Date(item[0]).toLocaleTimeString(),
+        // time: new Date(item[0]).toLocaleTimeString(),
+        time: new Date(item[0]).toLocaleString("en-US", {
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        }),
+
         open: parseFloat(item[1]),
         high: parseFloat(item[2]),
         low: parseFloat(item[3]),
@@ -94,6 +102,30 @@ export const CoinChart: React.FC = () => {
     const interval = setInterval(fetchBTCData, 5000);
     return () => clearInterval(interval);
   }, [fetchBTCData]);
+
+  const calculateProfit = (sellPrice: number) => {
+    const unmatchedBuys = [];
+    const matchedBuys = new Set();
+
+    for (const p of points) {
+      if (p.type === "buy" && !matchedBuys.has(p)) {
+        unmatchedBuys.push(p);
+      }
+      if (p.type === "sell") {
+        unmatchedBuys.length = 0;
+      }
+    }
+
+    let totalProfit = 0;
+
+    for (const buy of unmatchedBuys) {
+      const gain = (sellPrice - buy.price) / buy.price;
+      totalProfit += gain * buy.amount;
+      matchedBuys.add(buy);
+    }
+
+    return totalProfit;
+  };
 
   const handleChartClick = (e: any) => {
     if (!e || !e.activeLabel || !data.length) return;
@@ -122,13 +154,7 @@ export const CoinChart: React.FC = () => {
         { time: clickedPoint.time, price, amount: 0, type: "sell" },
       ]);
 
-      const totalProfit = points.reduce((acc, buy) => {
-        const gain =
-          buy.type === "buy" ? (sellPrice - buy.price) / buy.price : 0;
-
-        return acc + gain * buy.amount;
-      }, 0);
-
+      const totalProfit = calculateProfit(sellPrice);
       setProfit(totalProfit);
     }
   };
@@ -138,10 +164,11 @@ export const CoinChart: React.FC = () => {
     setPoints([]);
     setProfit(null);
     setFibIndex(0);
-    setPoints([]);
   };
 
-  const totalSpent = points.reduce((acc, buy) => acc + buy.amount, 0);
+  const totalSpent = points
+    .filter((p) => p.type === "buy")
+    .reduce((acc, buy) => acc + buy.amount, 0);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -160,7 +187,6 @@ export const CoinChart: React.FC = () => {
   return (
     <div className="p-6 w-full mx-auto space-y-6">
       <h1 className="text-2xl font-bold text-center">BTC/USDT 5m Chart</h1>
-
       <div className="flex justify-center gap-4">
         <label className="flex items-center gap-2">
           MA1:
@@ -181,7 +207,6 @@ export const CoinChart: React.FC = () => {
           />
         </label>
       </div>
-
       <div className="flex justify-center gap-4">
         <Button
           onClick={() => setMode("buy")}
@@ -201,15 +226,13 @@ export const CoinChart: React.FC = () => {
         <Button onClick={fetchBTCData}>Refresh Data</Button>
       </div>
 
-      {profit !== null && (
-        <div className="text-center text-xl font-semibold">
-          💰 Profit: {profit.toFixed(2)} USDT
-        </div>
-      )}
+      <div className="text-center text-lg text-gray-700">
+        📉 Total Spent: {totalSpent.toFixed(2)} USDT
+      </div>
 
-      {points.length > 0 && (
+      {profit !== null && (
         <div className="text-center text-lg text-gray-700">
-          📉 Total Spent: {totalSpent.toFixed(2)} USDT
+          📉 Profit: {profit.toFixed(2)} USDT
         </div>
       )}
 
@@ -247,6 +270,20 @@ export const CoinChart: React.FC = () => {
             dot={false}
             isAnimationActive={false}
           />
+          {/* <Scatter
+            data={points.filter((p) => p.type === "buy")}
+            name="Buy"
+            fill="green"
+            shape="circle"
+            x="time"
+            y="price"
+          />
+          <Scatter
+            data={points.filter((p) => p.type === "sell")}
+            name="Sell"
+            fill="red"
+            shape="triangle"
+          /> */}
         </LineChart>
       </ResponsiveContainer>
 
@@ -267,6 +304,7 @@ export const CoinChart: React.FC = () => {
                   <th className="py-2 px-4 border-b">Time</th>
                   <th className="py-2 px-4 border-b">Price</th>
                   <th className="py-2 px-4 border-b">Type</th>
+                  <th className="py-2 px-4 border-b">Amount</th>
                 </tr>
               </thead>
               <tbody>
@@ -276,6 +314,9 @@ export const CoinChart: React.FC = () => {
                     <td className="py-1 px-4">{p.time}</td>
                     <td className="py-1 px-4">{p.price.toFixed(2)}</td>
                     <td className="py-1 px-4">{p.type}</td>
+                    <td className="py-1 px-4">
+                      {p.type === "buy" ? p.amount.toFixed(2) : "-"}
+                    </td>
                   </tr>
                 ))}
               </tbody>
