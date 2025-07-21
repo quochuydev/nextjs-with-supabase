@@ -43,6 +43,20 @@ export const CoinChart: React.FC = () => {
       );
       const json = await res.json();
 
+      // [
+      //   0: Open time (ms),
+      //   1: Open,
+      //   2: High,
+      //   3: Low,
+      //   4: Close,
+      //   5: Volume,
+      //   6: Close time,
+      //   7: Quote asset volume,
+      //   8: Number of trades,
+      //   9: Taker buy base volume,
+      //  10: Taker buy quote volume,
+      //  11: Ignore
+      // ]
       const parsed = json.map((item: any) => ({
         time: new Date(item[0]).toLocaleTimeString(),
         open: parseFloat(item[1]),
